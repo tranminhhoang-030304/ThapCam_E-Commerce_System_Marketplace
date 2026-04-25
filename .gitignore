@@ -1,0 +1,61 @@
+# =========================
+# ROOT ENVIRONMENT VARIABLES
+# =========================
+/.env
+!/.env.example
+
+# =========================
+# OS & EDITOR CONFIG
+# =========================
+.DS_Store
+.vscode/
+.idea/
+*.suo
+*.ntvs
+*.njsproj
+*.sln
+*.sw?
+*.log
+
+# =========================
+# FRONTEND (Next.js - /fe)
+# =========================
+fe/node_modules/
+fe/.next/
+fe/out/
+fe/build
+fe/.env.local
+fe/.env.development.local
+fe/.env.test.local
+fe/.env.production.local
+fe/npm-debug.log*
+fe/yarn-debug.log*
+fe/yarn-error.log*
+
+# =========================
+# BACKEND NESTJS (/be_nestjs)
+# =========================
+be_nestjs/node_modules/
+be_nestjs/dist/
+be_nestjs/.env
+be_nestjs/npm-debug.log*
+be_nestjs/yarn-debug.log*
+be_nestjs/yarn-error.log*
+
+# =========================
+# BACKEND JAVA SPRING (/be_javaspring)
+# =========================
+be_javaspring/demo/target/
+be_javaspring/demo/logs/
+be_javaspring/demo/src/main/resources/application.yml
+!be_javaspring/demo/src/main/resources/application.yml.example
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+.gradle/
+build/
+
+# Bỏ qua các file key của Google
+client_secret_*.json

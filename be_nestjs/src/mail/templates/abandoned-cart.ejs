@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f5; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); }
+        .header { background-color: #4f46e5; color: white; padding: 30px 20px; text-align: center; }
+        .header h1 { margin: 0; font-size: 24px; letter-spacing: 0.5px; }
+        .content { padding: 30px; color: #334155; line-height: 1.6; }
+        .voucher-box { background-color: #fdf2f8; border: 2px dashed #ec4899; border-radius: 8px; padding: 20px; text-align: center; margin: 25px 0; }
+        .voucher-code { font-size: 28px; font-weight: bold; color: #db2777; letter-spacing: 2px; margin: 10px 0; font-family: monospace; }
+        .btn { display: inline-block; background-color: #4f46e5; color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: bold; margin-top: 15px; }
+        .footer { background-color: #f8fafc; padding: 20px; text-align: center; color: #64748b; font-size: 13px; border-top: 1px solid #e2e8f0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Giỏ hàng nhớ bạn quá!</h1>
+        </div>
+        
+        <div class="content">
+            <p>Chào <b><%= name %></b>,</p>
+            <p>Chúng tôi nhận thấy bạn đã để lại một vài món đồ cực kỳ ưng ý trong giỏ hàng tại ThapCam E-Commerce nhưng chưa kịp thanh toán.</p>
+            <p>Để tiếp thêm chút động lực, ThapCam gửi tặng bạn một món quà nhỏ để bạn rinh ngay những món đồ yêu thích về nhà nhé!</p>
+            <p>Cảm ơn bạn đã tin tưởng sử dụng dịch vụ tại ThapCam E-Commerce!</p>
+
+            <div class="voucher-box">
+                <p style="margin: 0; color: #831843; font-weight: 500;">MÃ GIẢM GIÁ ĐỘC QUYỀN DÀNH RIÊNG CHO BẠN</p>
+                <div class="voucher-code"><%= voucherCode %></div>
+                <p style="margin: 0; font-size: 14px; color: #ec4899;">(Giảm ngay <%= discountValue %> cho đơn hàng này)</p>
+            </div>
+
+            <p>Mã chỉ có hiệu lực trong vòng <b>3 ngày</b> tới. Đừng bỏ lỡ cơ hội này nhé!</p>
+            
+            <div style="text-align: center;">
+                <a href="<%= shopLink %>" class="btn">Quay lại giỏ hàng ngay</a>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2026 ThapCam E-Commerce. Phục vụ bằng cả trái tim.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+  <div style="background-color: #4f46e5; color: white; padding: 30px; text-align: center;">
+    <h1 style="margin: 0; font-size: 24px;">ThapCam E-Commerce</h1>
+    <p style="margin-top: 10px; opacity: 0.9;">Biên lai thanh toán điện tử</p>
+  </div>
+  <div style="padding: 30px;">
+    <p>Xin chào <strong><%= name %></strong>,</p>
+    <p>Hệ thống đã ghi nhận thanh toán thành công cho đơn hàng của bạn. Dưới đây là thông tin chi tiết:</p>
+    
+    <div style="background-color: #f9fafb; border: 1px dashed #cbd5e1; padding: 20px; border-radius: 8px; margin: 20px 0;">
+      <p style="margin: 5px 0; display: flex; justify-content: space-between;">
+        <span style="color: #64748b;">Mã đơn hàng:</span> <strong>#<%= orderId %></strong>
+      </p>
+      <p style="margin: 5px 0; display: flex; justify-content: space-between;">
+        <span style="color: #64748b;">Trạng thái:</span> <span style="color: #10b981; font-weight: bold;">Đã Thanh Toán</span>
+      </p>
+      <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 15px 0;" />
+      <h3 style="margin: 0; display: flex; justify-content: space-between;">
+        <span>Tổng cộng:</span> <span style="color: #ef4444;"><%= amount %> VNĐ</span>
+      </h3>
+    </div>
+    <p style="color: #64748b; font-size: 14px;">Bạn có thể theo dõi tiến trình giao hàng trực tiếp trên hệ thống của chúng tôi.</p>
+  </div>
+</div>

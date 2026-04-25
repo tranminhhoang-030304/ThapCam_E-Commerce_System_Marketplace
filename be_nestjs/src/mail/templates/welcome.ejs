@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0fdf4; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); }
+        .header { background-color: #16a34a; color: white; padding: 30px 20px; text-align: center; }
+        .header h1 { margin: 0; font-size: 24px; letter-spacing: 0.5px; }
+        .content { padding: 30px; color: #334155; line-height: 1.6; }
+        .voucher-box { background-color: #f0fdfa; border: 2px dashed #0d9488; border-radius: 8px; padding: 20px; text-align: center; margin: 25px 0; }
+        .voucher-code { font-size: 28px; font-weight: bold; color: #0f766e; letter-spacing: 2px; margin: 10px 0; font-family: monospace; }
+        .btn { display: inline-block; background-color: #16a34a; color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: bold; margin-top: 15px; }
+        .footer { background-color: #f8fafc; padding: 20px; text-align: center; color: #64748b; font-size: 13px; border-top: 1px solid #e2e8f0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Chào mừng bạn đến với ThapCam! 🎉</h1>
+        </div>
+        
+        <div class="content">
+            <p>Xin chào <b><%= name %></b>,</p>
+            <p>Cảm ơn bạn đã lựa chọn ThapCam E-Commerce làm điểm đến mua sắm. Tài khoản của bạn đã được kích hoạt thành công!</p>
+            <p>Để khởi đầu hành trình mua sắm thật bùng nổ, ThapCam xin gửi tặng bạn một món quà ra mắt (Giảm ngay 50.000đ cho đơn hàng đầu tiên):</p>
+
+            <div class="voucher-box">
+                <p style="margin: 0; color: #115e59; font-weight: 500;">MÃ TÂN THỦ DÀNH RIÊNG CHO BẠN</p>
+                <div class="voucher-code"><%= voucherCode %></div>
+            </div>
+
+            <p>Lướt ThapCam ngay hôm nay để rinh về những món đồ ưng ý nhất nhé!</p>
+            
+            <div style="text-align: center;">
+                <a href="<%= shopLink %>" class="btn">Mua sắm ngay</a>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2026 ThapCam E-Commerce. Phục vụ bằng cả trái tim.</p>
+        </div>
+    </div>
+</body>
+</html>

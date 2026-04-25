@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #e2e8f0; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #111827; color: #f3f4f6; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid #fbbf24; }
+        .header { background-color: #000000; padding: 30px 20px; text-align: center; border-bottom: 2px solid #fbbf24; }
+        .header h1 { margin: 0; font-size: 26px; color: #fbbf24; letter-spacing: 1px; text-transform: uppercase; }
+        .content { padding: 30px; line-height: 1.6; }
+        .highlight { color: #fbbf24; font-weight: bold; font-size: 18px; }
+        .voucher-box { background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%); border-radius: 8px; padding: 25px; text-align: center; margin: 30px 0; color: #000000; box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3); }
+        .voucher-code { font-size: 32px; font-weight: 900; letter-spacing: 3px; margin: 10px 0; font-family: monospace; background-color: rgba(255,255,255,0.3); display: inline-block; padding: 5px 15px; border-radius: 6px;}
+        .btn { display: inline-block; background-color: #fbbf24; color: #000000; text-decoration: none; padding: 14px 35px; border-radius: 6px; font-weight: bold; margin-top: 15px; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; }
+        .footer { background-color: #000000; padding: 20px; text-align: center; color: #6b7280; font-size: 13px; border-top: 1px solid #374151; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌟 Thành Viên Đặc Quyền 🌟</h1>
+        </div>
+        
+        <div class="content">
+            <p>Kính gửi <b><%= name %></b>,</p>
+            <p>ThapCam E-Commerce vô cùng trân trọng và biết ơn khi sếp đã tin tưởng mua sắm với đơn hàng trị giá lên tới <span class="highlight"><%= formattedAmount %></span>.</p>
+            <p>Sự ủng hộ của sếp chính là động lực to lớn của chúng tôi. Thay cho lời cảm ơn sâu sắc nhất, ThapCam xin gửi tặng sếp một đặc quyền riêng biệt cho lần mua sắm tiếp theo:</p>
+
+            <div class="voucher-box">
+                <p style="margin: 0; font-size: 14px; font-weight: 700; text-transform: uppercase;">Mã Giảm Giá VIP Độc Quyền</p>
+                <div class="voucher-code"><%= voucherCode %></div>
+                <p style="margin: 0; font-size: 16px; font-weight: 500;">(Giảm trực tiếp <%= discountValue %> cho đơn hàng kế tiếp)</p>
+            </div>
+
+            <p style="color: #9ca3af; font-size: 14px; text-align: center;"><i>Mã có hiệu lực trong vòng 30 ngày và sẽ được tự động áp dụng khi sếp bấm vào nút bên dưới.</i></p>
+            
+            <div style="text-align: center;">
+                <a href="<%= shopLink %>" class="btn">Dùng Đặc Quyền Ngay</a>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2026 ThapCam E-Commerce VIP Club. Đẳng cấp tạo nên sự khác biệt.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,58 @@
+server:
+  port: 8080 # Chạy cổng 8080 để không đụng với NestJS ở cổng 3000
+
+spring:
+  # Cấu hình PostgreSQL (Trỏ vào DB java_db_order)
+  datasource:
+    url: jdbc:postgresql://localhost:5434/java_db_order
+    username: admin
+    password: your_postgres_password_here
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update # Tự động tạo bảng
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  # Cấu hình Redis
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+  mq:
+    inventory-queue: "inventory_update_queue"
+
+# CHÌA KHÓA BÍ MẬT (Phải copy y hệt từ file .env của NestJS)
+jwt:
+  secret: your_jwt_secret_key_here
+  expiration_time: 1d
+
+payment:
+  vnpay:
+    tmnCode: "your_vnpay_tmn_code"
+    hashSecret: "your_vnpay_hash_secret"
+    url: "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
+    returnUrl: "http://localhost:3000/payment/result"
+    apiUrl: https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
+  momo:
+    partner-code: "your_momo_partner_code"
+    access-key: "your_momo_access_key"
+    secret-key: "your_momo_secret_key"
+    api-url: "https://test-payment.momo.vn/v2/gateway/api/create"
+    return-url: "http://localhost:3000/payment/result"
+    ipn-url: "your_ngrok_url_for_momo_ipn"
+  stripe:
+    public-key: "your_stripe_public_key"
+    secret-key: "your_stripe_secret_key"
+    success-url: "http://localhost:8080/api/payment/stripe/success"
+    cancel-url: "http://localhost:3000/checkout"

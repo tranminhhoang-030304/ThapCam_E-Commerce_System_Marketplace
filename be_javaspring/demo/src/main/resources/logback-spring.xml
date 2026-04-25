@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Cấu hình thư mục lưu log -->
+    <property name="LOGS" value="./logs" />
+
+    <!-- 1. Ghi log ra màn hình Console (Có màu mè cho dễ nhìn lúc dev) -->
+    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %highlight(%-5level) [%blue(%t)] %yellow(%logger{36}): %msg%n%throwable</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 2. Ghi log ra File (Cắt file mỗi ngày, lưu 14 ngày cho Production) -->
+    <appender name="RollingFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOGS}/spring-boot-app.log</file>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level [%t] %logger{36}: %msg%n%throwable</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- Tự động nén thành file .gz cho nhẹ ổ cứng -->
+            <fileNamePattern>${LOGS}/archived/spring-boot-app-%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <!-- Tự xóa file cũ hơn 14 ngày -->
+            <maxHistory>14</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <!-- Áp dụng 2 cách ghi log trên cho toàn bộ app -->
+    <root level="info">
+        <appender-ref ref="Console" />
+        <appender-ref ref="RollingFile" />
+    </root>
+</configuration>
