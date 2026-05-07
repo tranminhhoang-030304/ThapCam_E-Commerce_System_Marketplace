@@ -1,0 +1,57 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  # Cấu hình PostgreSQL cho Render
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update 
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  # Cấu hình Redis cho Render
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+
+  # Cấu hình RabbitMQ cho Render
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+    virtual-host: ${RABBITMQ_VIRTUAL_HOST}
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration_time: 1d
+
+payment:
+  vnpay:
+    tmnCode: ${PAYMENT_VNPAY_TMN_CODE}
+    hashSecret: ${PAYMENT_VNPAY_HASH_SECRET}
+    url: ${PAYMENT_VNPAY_URL:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}
+    returnUrl: ${VNPAY_RETURN_URL}
+    apiUrl: ${PAYMENT_VNPAY_API_URL:https://sandbox.vnpayment.vn/merchant_webapi/api/transaction}
+  momo:
+    partner-code: ${PAYMENT_MOMO_PARTNER_CODE}
+    access-key: ${PAYMENT_MOMO_ACCESS_KEY}
+    secret-key: ${PAYMENT_MOMO_SECRET_KEY}
+    api-url: ${PAYMENT_MOMO_API_URL:https://test-payment.momo.vn/v2/gateway/api/create}
+    return-url: ${MOMO_RETURN_URL}
+    ipn-url: ${MOMO_IPN_URL}
+  stripe:
+    public-key: ${PAYMENT_STRIPE_PUBLISHABLE_KEY}
+    secret-key: ${PAYMENT_STRIPE_SECRET_KEY}
+    success-url: ${STRIPE_SUCCESS_URL}
+    cancel-url: ${STRIPE_CANCEL_URL}

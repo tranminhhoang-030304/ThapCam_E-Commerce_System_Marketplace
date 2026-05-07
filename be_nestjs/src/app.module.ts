@@ -75,16 +75,19 @@ import { SseModule } from './sse/sse.module';
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         transport: {
-          host: configService.get<string>('MAIL_HOST'),
-          port: 465,
-          secure: true,
+          host: configService.get<string>('MAIL_HOST', 'smtp.gmail.com'),
+          port: configService.get<number>('MAIL_PORT', 587),
+          secure: configService.get<number>('MAIL_PORT') === 465, // Tự động bật secure nếu dùng port 465
           auth: {
             user: configService.get<string>('MAIL_USER'),
             pass: configService.get<string>('MAIL_PASS'),
           },
+          tls: {
+            rejectUnauthorized: false, // Tránh lỗi chứng chỉ trên môi trường Cloud
+          },
         },
         defaults: {
-          from: configService.get<string>('MAIL_FROM'),
+          from: configService.get<string>('MAIL_FROM', '"ThapCam E-Com" <hoangmih334@gmail.com>'),
         },
       }),
     }),
