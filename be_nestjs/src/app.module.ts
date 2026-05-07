@@ -36,6 +36,10 @@ import { SseModule } from './sse/sse.module';
         database: configService.get<string>('DB_DATABASE'),
         timezone: '+07:00',
         autoLoadEntities: true,
+        // Cấu hình SSL để kết nối được với Cloud DB (Supabase)
+        ssl: {
+          rejectUnauthorized: false,
+        },
         // synchronize: true giúp tự động tạo bảng trong DB dựa trên code Entity.
         // Chỉ dùng ở môi trường DEV, lên Production phải tắt đi.
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
@@ -49,23 +53,11 @@ import { SseModule } from './sse/sse.module';
       useFactory: async (configService: ConfigService) => ({
         store: await redisStore({
           socket: {
-            host: 'localhost', // Trỏ thẳng vào container Redis port 6379 của sếp
-            port: 6379,
+            host: configService.get<string>('REDIS_HOST', 'localhost'), 
+            port: configService.get<number>('REDIS_PORT', 6379),
+            tls: (configService.get<string>('REDIS_HOST') ? true : false) as any, 
           },
-          ttl: 300000, // Cấu hình thời gian sống của Cache (VD: 5 phút = 300.000 ms)
-        }),
-      }),
-    }),
-    CacheModule.registerAsync({
-      isGlobal: true,
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        store: await redisStore({
-          socket: {
-            host: 'localhost',
-            port: 6379,
-          },
+          password: configService.get<string>('REDIS_PASSWORD'),
           ttl: 300000, 
         }),
       }),

@@ -1,6 +1,7 @@
 package com.example.demo.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -18,16 +19,20 @@ import java.util.Arrays;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    @Value("${app.frontend-url:http://localhost:3000}")
+    private String frontendUrl;
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000")); // Cấp phép cho Frontend cổng 3000
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Cấp phép cho các method, đặc biệt là OPTIONS
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));  // Cấp phép cho các header (để nhét JWT Token vào)
+        // Cho phép localhost và domain từ biến môi trường
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", frontendUrl));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*")); 
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration); // Áp dụng cấu hình này cho mọi đường dẫn
+        source.registerCorsConfiguration("/**", configuration); 
         return source;
     }
 
@@ -37,16 +42,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // 0. CẤU HÌNH CORS
-                .cors(cors -> cors.configurationSource(request -> {
-                    var config = new org.springframework.web.cors.CorsConfiguration();
-                    // Cho phép Next.js (Cổng 3000) gọi sang
-                    config.setAllowedOrigins(java.util.List.of("http://localhost:3000"));
-                    // Mở toang các method, ĐẶC BIỆT LÀ PATCH
-                    config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-                    config.setAllowedHeaders(java.util.List.of("*"));
-                    return config;
-                }))
+                // 0. CẤU HÌNH CORS (Sử dụng Bean corsConfigurationSource ở trên)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 // 1. Tắt bảo vệ CSRF (Không cần thiết khi dùng JWT)
                 .csrf(csrf -> csrf.disable())
@@ -64,10 +61,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/payment/momo_ipn").permitAll()
                         .requestMatchers("/api/test/admin").hasAuthority("ROLE_ADMIN") // Chỉ Admin mới vào được
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/payment/momo_return").permitAll()
                         .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/api/payment/stripe_webhook").permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/payments/**", "/api/payment/**").permitAll()
                         .anyRequest().authenticated() // Mọi API khác (như api test/user, Giỏ hàng) đều phải Đăng nhập
                 );

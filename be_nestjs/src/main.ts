@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { ConfigService } from '@nestjs/config';
 import { WinstonModule, utilities as nestWinstonModuleUtilities } from 'nest-winston';
 import * as winston from 'winston';
 import 'winston-daily-rotate-file';
@@ -36,11 +37,16 @@ async function bootstrap() {
       ],
     }),
   });
+
+  const configService = app.get(ConfigService);
+  const rabbitmqUrl = configService.get('RABBITMQ_URL') || 'amqp://localhost:5672';
+  const frontendUrl = configService.get('FRONTEND_URL') || 'http://localhost:3000';
+
   // 3. TẠO XONG APP RỒI MỚI GẮn RABBITMQ VÀO
   app.connectMicroservice({
     transport: Transport.RMQ,
     options: {
-      urls: ['amqp://localhost:5672'],
+      urls: [rabbitmqUrl],
       queue: 'inventory_update_queue',
       queueOptions: { durable: true },
     },
@@ -48,7 +54,7 @@ async function bootstrap() {
   app.connectMicroservice({
     transport: Transport.RMQ,
     options: {
-      urls: ['amqp://localhost:5672'],
+      urls: [rabbitmqUrl],
       queue: 'inventory_rollback_queue',
       queueOptions: { durable: true },
     },
@@ -56,7 +62,7 @@ async function bootstrap() {
   app.connectMicroservice({
     transport: Transport.RMQ,
     options: {
-      urls: ['amqp://localhost:5672'],
+      urls: [rabbitmqUrl],
       queue: 'send_email_notification_queue',
       queueOptions: { durable: true },
     },
@@ -64,7 +70,7 @@ async function bootstrap() {
   app.connectMicroservice({
     transport: Transport.RMQ,
     options: {
-      urls: ['amqp://localhost:5672'],
+      urls: [rabbitmqUrl],
       queue: 'order_status_update_queue',
       queueOptions: { durable: true },
     },
@@ -72,7 +78,7 @@ async function bootstrap() {
   app.connectMicroservice({
     transport: Transport.RMQ,
     options: {
-      urls: ['amqp://localhost:5672'],
+      urls: [rabbitmqUrl],
       queue: 'send_invoice_email_queue',
       queueOptions: {
         durable: true,
@@ -82,12 +88,15 @@ async function bootstrap() {
   app.connectMicroservice({
     transport: Transport.RMQ,
     options: {
-      urls: ['amqp://localhost:5672'], 
+      urls: [rabbitmqUrl], 
       queue: 'send_vip_reward_queue', 
       queueOptions: { durable: true }, 
     },
   });
-  app.enableCors(); 
+  app.enableCors({
+    origin: [frontendUrl, 'http://localhost:3000'],
+    credentials: true,
+  }); 
   app.setGlobalPrefix('api');
   await app.startAllMicroservices();
   await app.listen(4000); 
