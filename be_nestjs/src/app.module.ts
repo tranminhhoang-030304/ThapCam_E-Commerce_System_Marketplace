@@ -36,10 +36,12 @@ import { SseModule } from './sse/sse.module';
         database: configService.get<string>('DB_DATABASE'),
         timezone: '+07:00',
         autoLoadEntities: true,
-        // Cấu hình SSL để kết nối được với Cloud DB (Supabase)
-        ssl: {
-          rejectUnauthorized: false,
-        },
+        // Chỉ bật SSL nếu không phải chạy ở local (localhost hoặc tên service docker)
+        ssl: 
+          configService.get<string>('DB_HOST') === 'localhost' || 
+          configService.get<string>('DB_HOST') === 'postgres-db' 
+            ? false 
+            : { rejectUnauthorized: false },
         // synchronize: true giúp tự động tạo bảng trong DB dựa trên code Entity.
         // Chỉ dùng ở môi trường DEV, lên Production phải tắt đi.
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
