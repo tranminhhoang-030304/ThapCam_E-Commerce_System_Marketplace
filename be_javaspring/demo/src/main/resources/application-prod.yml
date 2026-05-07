@@ -4,7 +4,7 @@ server:
 spring:
   # Cấu hình PostgreSQL cho Render
   datasource:
-    url: ${SPRING_DATASOURCE_URL}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?currentSchema=java_db_order&sslmode=require}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -16,6 +16,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        default_schema: java_db_order
 
   # Cấu hình Redis cho Render
   data:

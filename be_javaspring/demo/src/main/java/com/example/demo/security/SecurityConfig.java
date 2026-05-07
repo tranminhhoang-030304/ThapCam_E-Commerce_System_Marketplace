@@ -55,16 +55,15 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/error").permitAll() // Cho phép hiển thị lỗi (không bị chặn)
                         .requestMatchers("/api/test/all").permitAll() // CẤP ĐỘ 1: Cho phép tất cả
-                        .requestMatchers("/api/payment/vnpay_return").permitAll()
-                        .requestMatchers("/api/payment/momo_return").permitAll()
-                        .requestMatchers("/api/payment/vnpay_ipn").permitAll()
-                        .requestMatchers("/api/payment/momo_ipn").permitAll()
-                        .requestMatchers("/api/test/admin").hasAuthority("ROLE_ADMIN") // Chỉ Admin mới vào được
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers("/api/auth/**").permitAll() // Cho phép Đăng ký/Đăng nhập
+                        .requestMatchers("/api/products/**", "/api/categories/**").permitAll() // Khách xem hàng thoải mái
+                        .requestMatchers("/api/payment/vnpay_return", "/api/payment/momo_return").permitAll()
+                        .requestMatchers("/api/payment/vnpay_ipn", "/api/payment/momo_ipn").permitAll()
                         .requestMatchers("/api/payment/stripe_webhook").permitAll()
                         .requestMatchers("/api/payments/**", "/api/payment/**").permitAll()
-                        .anyRequest().authenticated() // Mọi API khác (như api test/user, Giỏ hàng) đều phải Đăng nhập
+                        .requestMatchers("/api/test/admin", "/api/admin/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .anyRequest().authenticated() // Mọi API khác (như giỏ hàng, profile) đều phải Đăng nhập
                 );
 
         // 4. Nhét "anh soát vé" của chúng ta lên đứng trước anh bảo vệ mặc định
