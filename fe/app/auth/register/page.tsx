@@ -2,6 +2,7 @@ import { RegisterForm } from '@/components/features/auth/register-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import { ROUTES } from '@/lib/constants';
+import { Suspense } from 'react';
 
 export const metadata = {
   title: 'Register - ThapCam E-Commerce',
@@ -19,7 +20,9 @@ export default function RegisterPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <RegisterForm />
+          <Suspense fallback={<div className="h-[200px] flex items-center justify-center">Loading...</div>}>
+            <RegisterForm />
+          </Suspense>
           <p className="text-sm text-muted-foreground text-center mt-4">
             Already have an account?{' '}
             <Link href={ROUTES.LOGIN} className="text-primary hover:underline font-semibold">

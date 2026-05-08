@@ -2,6 +2,7 @@ import { LoginForm } from '@/components/features/auth/login-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import { ROUTES } from '@/lib/constants';
+import { Suspense } from 'react';
 
 export const metadata = {
   title: 'Login - ThapCam E-Commerce',
@@ -20,7 +21,9 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <LoginForm />
+          <Suspense fallback={<div className="h-[200px] flex items-center justify-center">Loading...</div>}>
+            <LoginForm />
+          </Suspense>
           <p className="text-sm text-muted-foreground text-center mt-4">
             Don't have an account?{' '}
             <Link href={ROUTES.REGISTER} className="text-primary hover:underline font-semibold">
