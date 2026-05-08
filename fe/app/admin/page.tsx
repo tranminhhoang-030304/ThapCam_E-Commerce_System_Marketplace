@@ -24,7 +24,7 @@ function TabSkeleton() {
   );
 }
 
-export default function AdminDashboard() {
+function AdminDashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState('overview'); // tab mặc định là Overview
@@ -54,14 +54,6 @@ export default function AdminDashboard() {
 
   if (!isAdmin) return null;
 
-  useEffect(() => {
-    if (!isLoadingAuth && !isAdmin) {
-      router.push('/'); // Đá về trang chủ nếu không có quyền
-    }
-  }, [isAdmin, isLoadingAuth, router]);
-
-  if (!isAdmin) return null; // Tránh render nháy giao diện lúc chưa redirect
-
   return (
     <div>
       <div className="mb-8">
@@ -72,7 +64,6 @@ export default function AdminDashboard() {
       <Card>
         <CardContent className="pt-6">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            {/* Đổi thành grid-cols-5 để chứa thêm 1 tab */}
             <TabsList className="grid w-full grid-cols-6 bg-slate-100/50">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="categories">Categories</TabsTrigger>
@@ -82,7 +73,6 @@ export default function AdminDashboard() {
               <TabsTrigger value="vouchers">Vouchers</TabsTrigger>
             </TabsList>
 
-            {/* THÊM CONTENT CHO TAB OVERVIEW */}
             <TabsContent value="overview" className="mt-6">
               <Suspense fallback={<TabSkeleton />}>
                 <OverviewTab />
@@ -122,5 +112,13 @@ export default function AdminDashboard() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function AdminDashboard() {
+  return (
+    <Suspense fallback={<div className="p-20 text-center">Đang tải bảng điều khiển...</div>}>
+      <AdminDashboardContent />
+    </Suspense>
   );
 }

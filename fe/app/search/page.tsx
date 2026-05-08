@@ -5,9 +5,9 @@ import { useQuery } from '@tanstack/react-query';
 import { ProductsService } from '@/services/products.service';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
-// import { ProductCard } from '@/components/features/products/product-card'; // Nhớ mở dòng này nếu sếp dùng component có sẵn
+import { Suspense } from 'react';
 
-export default function SearchPage() {
+function SearchContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const query = searchParams.get('q') || '';
@@ -46,7 +46,6 @@ export default function SearchPage() {
       ) : products.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
           {products.map((product: any) => (
-            // Nếu sếp có ProductCard thì thay nguyên cục div dưới bằng: <ProductCard key={product.id} product={product} />
             <div 
               key={product.id} 
               className="group cursor-pointer border rounded-xl p-3 hover:shadow-md transition-all bg-white"
@@ -77,3 +76,11 @@ export default function SearchPage() {
     </div>
   );
 }
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="p-20 text-center">Đang tải kết quả tìm kiếm...</div>}>
+      <SearchContent />
+    </Suspense>
+  );
+}
