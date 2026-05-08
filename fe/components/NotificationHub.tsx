@@ -31,7 +31,8 @@ export default function NotificationHub() {
 
         // 2. KẾT NỐI BỘ ĐÀM SSE ĐỂ HỨNG TIN MỚI SAU KHI ĐÃ CÓ LỊCH SỬ
         console.log(`⏳ Đang cắm trạm Radar SSE...`);
-        eventSource = new EventSource(`http://localhost:4000/api/sse/${user.id}`);
+        const baseUrl = process.env.NEXT_PUBLIC_API_PIM_URL || 'http://localhost:4000/api';
+        eventSource = new EventSource(`${baseUrl}/sse/${user.id}`);
 
         eventSource.onmessage = (event) => {
           try {

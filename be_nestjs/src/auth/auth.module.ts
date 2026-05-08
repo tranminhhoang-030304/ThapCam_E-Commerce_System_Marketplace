@@ -20,26 +20,32 @@ import { JwtStrategy } from './strategies/jwt.strategy';
         signOptions: { expiresIn: configService.get<string>('JWT_EXPIRATION_TIME') as any },
       }),
     }),
-    ClientsModule.register([
+    ClientsModule.registerAsync([
       {
         name: 'RABBITMQ_CLIENT',
-        transport: Transport.RMQ,
-        options: {
-          urls: ['amqp://localhost:5672'], 
-          queue: 'send_email_notification_queue', 
-          queueOptions: {
-            durable: true,
+        imports: [ConfigModule],
+        inject: [ConfigService],
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.RMQ,
+          options: {
+            urls: [configService.get<string>('RABBITMQ_URL') || 'amqp://localhost:5672'],
+            queue: 'send_email_notification_queue',
+            queueOptions: { durable: true },
           },
-        },
+        }),
       },
       {
         name: 'SPRING_BOOT_CLIENT',
-        transport: Transport.RMQ,
-        options: {
-          urls: ['amqp://localhost:5672'],
-          queue: 'user_registered_queue',
-          queueOptions: { durable: true },
-        },
+        imports: [ConfigModule],
+        inject: [ConfigService],
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.RMQ,
+          options: {
+            urls: [configService.get<string>('RABBITMQ_URL') || 'amqp://localhost:5672'],
+            queue: 'user_registered_queue',
+            queueOptions: { durable: true },
+          },
+        }),
       },
     ]),
   ],

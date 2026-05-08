@@ -14,7 +14,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/admin/orders")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "${app.frontend-url:http://localhost:3000}")
 public class AdminOrderController {
 
     @Autowired private AdminOrderService adminOrderService;

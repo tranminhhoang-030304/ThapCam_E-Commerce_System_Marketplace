@@ -37,6 +37,9 @@ public class AdminOrderService {
     @Autowired private RabbitTemplate rabbitTemplate;
     @Autowired private VoucherRepository voucherRepository;
 
+    @org.springframework.beans.factory.annotation.Value("${app.nestjs-api-url}")
+    private String nestjsApiUrl;
+
     // 1. LẤY DANH SÁCH ĐƠN HÀNG (CÓ PHÂN TRANG + LỌC STATUS + TRẢ VỀ DTO)
     public Page<AdminOrderListResponse> getAllOrders(int page, int size, String status) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
@@ -246,7 +249,7 @@ public class AdminOrderService {
 
             // 1. Hỏi NestJS xem có bao nhiêu Khách hàng
             try {
-                String usersJson = restTemplate.getForObject("http://localhost:4000/api/users", String.class);
+                String usersJson = restTemplate.getForObject(nestjsApiUrl + "/users", String.class);
                 if (usersJson != null) {
                     JsonNode usersNode = mapper.readTree(usersJson);
                     if (usersNode.isArray()) {
@@ -261,7 +264,7 @@ public class AdminOrderService {
 
             // 2. Hỏi NestJS xem có bao nhiêu Sản phẩm
             try {
-                String productsJson = restTemplate.getForObject("http://localhost:4000/api/products", String.class);
+                String productsJson = restTemplate.getForObject(nestjsApiUrl + "/products", String.class);
                 if (productsJson != null) {
                     JsonNode prodsNode = mapper.readTree(productsJson);
                     if (prodsNode.isArray()) {

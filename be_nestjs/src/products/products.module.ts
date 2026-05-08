@@ -9,19 +9,25 @@ import { ProductVariant } from './entities/product-variant.entity';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { Review } from './entities/review.entity';
 
+import { ConfigModule, ConfigService } from '@nestjs/config';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([Product, Category, ProductVariant, Review]),
     AuthModule,
-    ClientsModule.register([
+    ClientsModule.registerAsync([
       {
         name: 'RABBITMQ_CLIENT',
-        transport: Transport.RMQ,
-        options: {
-          urls: ['amqp://localhost:5672'],
-          queue: 'order_refund_queue', 
-          queueOptions: { durable: true },
-        },
+        imports: [ConfigModule],
+        inject: [ConfigService],
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.RMQ,
+          options: {
+            urls: [configService.get<string>('RABBITMQ_URL') || 'amqp://localhost:5672'],
+            queue: 'order_refund_queue', 
+            queueOptions: { durable: true },
+          },
+        }),
       },
     ]),
   ],

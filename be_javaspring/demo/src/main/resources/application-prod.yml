@@ -39,6 +39,10 @@ jwt:
   secret: ${JWT_SECRET}
   expiration_time: 1d
 
+app:
+  nestjs-api-url: ${NESTJS_API_URL:http://localhost:4000/api}
+  frontend-url: ${APP_FRONTEND_URL:http://localhost:3000}
+
 payment:
   vnpay:
     tmnCode: ${PAYMENT_VNPAY_TMN_CODE}

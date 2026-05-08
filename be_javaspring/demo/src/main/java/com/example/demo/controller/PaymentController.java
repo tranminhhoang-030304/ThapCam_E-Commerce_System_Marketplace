@@ -26,7 +26,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/payment")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "${app.frontend-url:http://localhost:3000}")
 public class PaymentController {
 
     // === CẤU HÌNH VNPAY ===
@@ -46,6 +46,7 @@ public class PaymentController {
     // === CẤU HÌNH STRIPE ===
     @Value("${payment.stripe.success-url}") private String stripeSuccessUrl;
     @Value("${payment.stripe.cancel-url}") private String stripeCancelUrl;
+    @Value("${app.frontend-url}") private String frontendUrl;
 
     @Autowired private OrderRepository orderRepository;
     @Autowired private PaymentRepository paymentRepository;
@@ -511,7 +512,7 @@ public class PaymentController {
             sendPaymentSuccessNotification(order);
             
             System.out.println("✅ Stripe thanh toán & lưu Payment thành công cho đơn: " + orderId);
-            String frontendResultUrl = "http://localhost:3000/payment/result?stripe_status=success&orderId=" + orderId;
+            String frontendResultUrl = frontendUrl + "/payment/result?stripe_status=success&orderId=" + orderId;
             
             return ResponseEntity.status(HttpStatus.FOUND)
                     .location(URI.create(frontendResultUrl))
@@ -519,7 +520,7 @@ public class PaymentController {
 
         } catch (Exception e) {
             e.printStackTrace(); 
-            String errorUrl = "http://localhost:3000/payment/result?stripe_status=error";
+            String errorUrl = frontendUrl + "/payment/result?stripe_status=error";
             return ResponseEntity.status(HttpStatus.FOUND)
                     .location(URI.create(errorUrl))
                     .build();
