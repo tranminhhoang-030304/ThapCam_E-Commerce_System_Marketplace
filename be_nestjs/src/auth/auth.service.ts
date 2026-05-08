@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { UserRole } from '../users/entities/user.entity';
 import { ClientProxy } from '@nestjs/microservices';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -13,6 +14,7 @@ export class AuthService {
     private jwtService: JwtService,
     @Inject('RABBITMQ_CLIENT') private readonly rabbitClient: ClientProxy,
     @Inject('SPRING_BOOT_CLIENT') private readonly springClient: ClientProxy,
+    private configService: ConfigService,
   ) {}
 
   // 1. ĐĂNG KÝ
@@ -115,7 +117,8 @@ export class AuthService {
     await this.usersService.saveResetToken(user.id, resetToken, expiresAt);
     // 4. Bắn tín hiệu sang RabbitMQ để hệ thống gửi Email (Service khác sẽ lo)
     // Tạo một link Frontend để khách bấm vào
-    const resetLink = `http://localhost:3000/auth/reset-password?token=${resetToken}`;
+    const frontendUrl = this.configService.get('FRONTEND_URL') || 'http://localhost:3000';
+    const resetLink = `${frontendUrl}/auth/reset-password?token=${resetToken}`;
     this.rabbitClient.emit('send_reset_password_email', {
       email: user.email,
       name: user.full_name,

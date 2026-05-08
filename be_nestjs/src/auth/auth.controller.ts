@@ -2,10 +2,14 @@ import { Controller, Post, Body, Get, UseGuards, Request, BadRequestException, R
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard'; 
 import { AuthGuard } from '@nestjs/passport';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService
+  ) {}
 
   @Post('register')
   async register(@Body() body: any) {
@@ -73,6 +77,7 @@ export class AuthController {
     const tokens = await this.authService.googleLogin(req.user);
 
     // Xử lý xong, KHÁCH VỀ LẠI FRONTEND kèm theo 2 cái thẻ (Access và Refresh)
-    return res.redirect(`http://localhost:3000/auth/login?accessToken=${tokens.access_token}&refreshToken=${tokens.refresh_token}`);
+    const frontendUrl = this.configService.get('FRONTEND_URL') || 'http://localhost:3000';
+    return res.redirect(`${frontendUrl}/auth/login?accessToken=${tokens.access_token}&refreshToken=${tokens.refresh_token}`);
   }
 }

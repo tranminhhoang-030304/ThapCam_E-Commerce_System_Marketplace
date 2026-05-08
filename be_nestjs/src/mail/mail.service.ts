@@ -1,9 +1,13 @@
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class MailService {
-  constructor(private mailerService: MailerService) {}
+  constructor(
+    private mailerService: MailerService,
+    private configService: ConfigService
+  ) {}
 
   // 1. Gửi Email khôi phục mật khẩu
   async sendResetPassword(email: string, name: string, resetLink: string) {
@@ -39,7 +43,7 @@ export class MailService {
       context: { 
         name: name || 'Thành viên mới', 
         voucherCode,
-        shopLink: `http://localhost:3000/checkout?voucherCode=${voucherCode}` 
+        shopLink: `${this.configService.get('FRONTEND_URL') || 'http://localhost:3000'}/checkout?voucherCode=${voucherCode}` 
       },
     });
   }
@@ -69,7 +73,7 @@ export class MailService {
         name: name || 'Quý khách', 
         voucherCode, 
         discountValue,
-        shopLink: `http://localhost:3000/checkout?voucherCode=${voucherCode}`
+        shopLink: `${this.configService.get('FRONTEND_URL') || 'http://localhost:3000'}/checkout?voucherCode=${voucherCode}`
       },
     });
   }
@@ -89,7 +93,7 @@ export class MailService {
         discountValue,
         formattedAmount,
         // Cắm sẵn link có mã giống hệt vụ Giải cứu giỏ hàng để auto-apply
-        shopLink: `http://localhost:3000/checkout?voucherCode=${voucherCode}` 
+        shopLink: `${this.configService.get('FRONTEND_URL') || 'http://localhost:3000'}/checkout?voucherCode=${voucherCode}` 
       },
     });
   }
