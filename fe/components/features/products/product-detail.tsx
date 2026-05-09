@@ -95,7 +95,7 @@ export function ProductDetail({ productId }: ProductDetailProps) {
   const displayStock = exactVariant ? exactVariant.stock_quantity : (product?.stock_quantity || 0);
 
   const isMissingSelection = hasVariants && ((availableColors.length > 0 && !selectedColor) || (availableSizes.length > 0 && !selectedSize));
-  const isAddDisabled = isMissingSelection || !exactVariant || displayStock <= 0;
+  const isAddDisabled = isMissingSelection || (hasVariants && !exactVariant) || displayStock <= 0;
 
   // LOGIC ADD TO CART
   const actionMutation = useMutation({
