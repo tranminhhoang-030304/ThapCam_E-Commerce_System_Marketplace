@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 1. Đường ống gọi sang NestJS (Quản lý User, Product)
 export const nestApi = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_PIM_URL || 'http://localhost:4000/api', 
+    baseURL: process.env.NEXT_PUBLIC_API_PIM_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000/api', 
     headers: {
         'Content-Type': 'application/json',
     },
@@ -10,7 +10,7 @@ export const nestApi = axios.create({
 
 // 2. Đường ống gọi sang Spring Boot (Quản lý Cart, Order, Payment)
 export const springApi = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_OMS_URL || 'http://localhost:8080/api',
+    baseURL: process.env.NEXT_PUBLIC_API_OMS_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api',
     headers: {
         'Content-Type': 'application/json',
     },
