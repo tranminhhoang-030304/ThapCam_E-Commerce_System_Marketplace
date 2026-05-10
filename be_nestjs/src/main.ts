@@ -40,7 +40,8 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
   const rabbitmqUrl = configService.get('RABBITMQ_URL') || 'amqp://localhost:5672';
-  const frontendUrl = configService.get('FRONTEND_URL') || 'http://localhost:3000';
+  const rawFrontendUrl = configService.get('FRONTEND_URL') || 'http://localhost:3000';
+  const frontendUrl = rawFrontendUrl.replace(/\/$/, '');
 
   // 3. TẠO XONG APP RỒI MỚI GẮn RABBITMQ VÀO
   app.connectMicroservice({

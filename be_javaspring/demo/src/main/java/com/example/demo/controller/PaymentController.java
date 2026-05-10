@@ -237,11 +237,19 @@ public class PaymentController {
 
             // So sánh chữ ký do VNPay tạo ra và chữ ký tự tính
             String signValue = VNPayConfig.hmacSHA512(vnp_HashSecret, hashData.toString());
+            
+            System.out.println("🔍 [VNPAY RETURN] Đang kiểm tra chữ ký...");
+            System.out.println("👉 Chuỗi hashData: " + hashData.toString());
+            System.out.println("👉 Chữ ký VNPay gửi: " + vnp_SecureHash);
+            System.out.println("👉 Chữ ký tự tính: " + signValue);
+
             if (signValue.equals(vnp_SecureHash)) {
                 if ("00".equals(request.getParameter("vnp_ResponseCode"))) {
+                    System.out.println("✅ [VNPAY RETURN] Chữ ký hợp lệ & Giao dịch thành công!");
                     return ResponseEntity.ok(Map.of("success", true, "message", "VNPay verify success"));
                 }
             }
+            System.out.println("❌ [VNPAY RETURN] Chữ ký KHÔNG khớp hoặc ResponseCode lỗi!");
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Invalid signature or payment failed"));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(Map.of("success", false, "message", e.getMessage()));

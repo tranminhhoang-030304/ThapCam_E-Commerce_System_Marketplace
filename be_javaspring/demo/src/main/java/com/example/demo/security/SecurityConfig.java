@@ -25,8 +25,14 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Cho phép localhost và domain từ biến môi trường
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", frontendUrl));
+        
+        // Làm sạch URL (Xóa dấu / ở cuối nếu có) để tránh lỗi CORS
+        String cleanUrl = frontendUrl != null && frontendUrl.endsWith("/") 
+                          ? frontendUrl.substring(0, frontendUrl.length() - 1) 
+                          : frontendUrl;
+
+        // Sử dụng Patterns để linh hoạt hơn (Chấp nhận cả localhost và domain Production)
+        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:3000", cleanUrl));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*")); 
         configuration.setAllowCredentials(true);
