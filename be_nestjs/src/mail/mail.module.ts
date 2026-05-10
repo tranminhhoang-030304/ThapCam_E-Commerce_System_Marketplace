@@ -18,14 +18,15 @@ import { UsersModule } from '../users/users.module';
         transport: {
           // Lấy dữ liệu an toàn qua configService
           host: configService.get<string>('MAIL_HOST'), 
-          secure: false,
+          port: configService.get<number>('MAIL_PORT') || 587,
+          secure: configService.get<string>('MAIL_SECURE') === 'true', // Chuyển từ string "false" sang boolean
           auth: {
             user: configService.get<string>('MAIL_USER'),
             pass: configService.get<string>('MAIL_PASS'),
           },
         },
         defaults: {
-          from: configService.get<string>('MAIL_FROM'),
+          from: configService.get<string>('MAIL_FROM') || configService.get<string>('MAIL_USER'),
         },
         template: {
           dir: join(__dirname, 'templates'),
