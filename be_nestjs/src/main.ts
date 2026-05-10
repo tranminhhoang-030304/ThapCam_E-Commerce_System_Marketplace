@@ -101,6 +101,10 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
   await app.startAllMicroservices();
   await app.listen(4000); 
-  console.log(`🚀 NestJS đang chạy trên cổng 4000 & Đã cắm các pipeline RabbitMQ!`);
+  
+  const googleCallbackUrl = configService.get('GOOGLE_CALLBACK_URL');
+  console.log(`🚀 NestJS đang chạy trên cổng 4000!`);
+  console.log(`🌍 CORS Allowed Origins: ${frontendUrl}, http://localhost:3000`);
+  console.log(`🔗 Google Callback URL: ${googleCallbackUrl}`);
 }
 bootstrap();
