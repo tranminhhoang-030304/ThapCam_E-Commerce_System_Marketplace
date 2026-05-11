@@ -30,9 +30,19 @@ export class PaymentService {
     }
     // 3. DẤU HIỆU CỦA MOMO: partnerCode hoặc resultCode
     if (queryString.includes('partnerCode=') || queryString.includes('resultCode=')) {
-      // Tùy sếp đang dùng API GET hay POST cho MoMo, đây là ví dụ:
-      const response = await springApi.get(`/payment/momo_return?${queryString}`);
-      return response.data;
+      // MoMo IPN đã xử lý DB (trừ kho, cập nhật trạng thái) server-to-server rồi.
+      // Frontend chỉ cần check resultCode từ redirect URL để hiển thị kết quả.
+      const params = new URLSearchParams(queryString);
+      const resultCode = params.get('resultCode');
+      if (resultCode === '0') {
+        return { 
+          success: true, 
+          resultCode: 0, 
+          message: 'Giao dịch MoMo thành công' 
+        };
+      } else {
+        throw new Error('Thanh toán MoMo thất bại hoặc bị hủy');
+      }
     }
     throw new Error('Không nhận diện được cổng thanh toán');
   }
