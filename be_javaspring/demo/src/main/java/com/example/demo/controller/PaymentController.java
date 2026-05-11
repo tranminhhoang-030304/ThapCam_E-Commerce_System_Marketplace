@@ -246,6 +246,12 @@ public class PaymentController {
             if (signValue.equals(vnp_SecureHash)) {
                 if ("00".equals(request.getParameter("vnp_ResponseCode"))) {
                     System.out.println("✅ [VNPAY RETURN] Chữ ký hợp lệ & Giao dịch thành công!");
+
+                    // === XỬ LÝ CẬP NHẬT DB NGAY TẠI ĐÂY (Không chờ IPN) ===
+                    String txnRef = request.getParameter("vnp_TxnRef");
+                    String transactionNo = request.getParameter("vnp_TransactionNo");
+                    processVnpayPaymentSuccess(txnRef, transactionNo, "VNPAY_RETURN");
+
                     return ResponseEntity.ok(Map.of("success", true, "message", "VNPay verify success"));
                 }
             }
@@ -337,7 +343,7 @@ public class PaymentController {
         }
     }
 
-    // --- IPN CỦA VNPAY (VNPAY GỬI GET KÈM PARAMS CHUẨN) ---
+    // --- IPN CỦA VNPAY (VNPAY GỬI GET KÈM PARAMS CHUẨN - BACKUP CHO RETURN) ---
     @GetMapping("/vnpay_ipn")
     public ResponseEntity<?> vnpayIpn(HttpServletRequest request) {
         try {
@@ -374,76 +380,32 @@ public class PaymentController {
             // Kiểm tra tính hợp lệ của chữ ký
             String signValue = VNPayConfig.hmacSHA512(vnp_HashSecret, hashData.toString());
             if (signValue.equals(vnp_SecureHash)) {
-                String orderIdStr = request.getParameter("vnp_TxnRef");
+                String txnRef = request.getParameter("vnp_TxnRef");
+                String transactionNo = request.getParameter("vnp_TransactionNo");
+                String responseCode = request.getParameter("vnp_ResponseCode");
+
+                // Parse UUID từ txnRef
                 String formattedUuid = String.format("%s-%s-%s-%s-%s",
-                        orderIdStr.substring(0, 8), orderIdStr.substring(8, 12),
-                        orderIdStr.substring(12, 16), orderIdStr.substring(16, 20),
-                        orderIdStr.substring(20, 32));
+                        txnRef.substring(0, 8), txnRef.substring(8, 12),
+                        txnRef.substring(12, 16), txnRef.substring(16, 20),
+                        txnRef.substring(20, 32));
 
                 Order order = orderRepository.findById(UUID.fromString(formattedUuid)).orElse(null);
 
                 if (order != null) {
                     if ("PENDING".equals(order.getStatus())) {
-                        if ("00".equals(request.getParameter("vnp_ResponseCode"))) {
-                            // 1. CẬP NHẬT ORDER
-                            order.setStatus("PAID");
-                            orderRepository.save(order);
-                            cacheService.clearDashboardCache();
-
-                            // 2. GHI VẾT PAYMENT
-                            Payment payment = new Payment();
-                            payment.setOrderId(order.getId());
-                            payment.setTransactionId(request.getParameter("vnp_TransactionNo"));
-                            payment.setAmount(order.getTotalAmount());
-                            payment.setPaymentMethod("VNPAY");
-                            payment.setStatus("SUCCESS");
-                            paymentRepository.save(payment);
-                            sendPaymentSuccessNotification(order);
-
-                            //3. Bắn vào RabbitMQ để trừ tồn kho
-                            if (order.getItems() != null && !order.getItems().isEmpty()) {
-                                for (OrderItem item : order.getItems()) {
-                                    // 1. Tạo cục dữ liệu thực tế (Payload)
-                                    Map<String, Object> data = new HashMap<>();
-                                    data.put("orderId", order.getId().toString());
-                                    data.put("productId", item.getProductId().toString());
-                                    if (item.getVariantId() != null) {
-                                        data.put("variantId", item.getVariantId().toString());
-                                    } else {
-                                        data.put("variantId", null);
-                                    }
-                                    data.put("quantity", item.getQuantity());
-
-                                    // 2. Bọc vào "Phong bì" chuẩn NestJS
-                                    Map<String, Object> nestEnvelope = new HashMap<>();
-                                    nestEnvelope.put("pattern", "inventory_update_queue");
-                                    nestEnvelope.put("data", data);
-
-                                    try {
-                                        //DỊCH MAP JAVA SANG CHUỖI JSON QUỐC TẾ ===
-                                        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-                                        String jsonMessage = mapper.writeValueAsString(nestEnvelope);
-
-                                        // 3. Bắn tin (Bắn chuỗi jsonMessage thay vì nestEnvelope)
-                                        System.out.println(" Đang bắn tin trừ kho: " + jsonMessage);
-                                        rabbitTemplate.convertAndSend("inventory_update_queue", jsonMessage);
-
-                                    } catch (Exception e) {
-                                        System.out.println(" Lỗi đóng gói JSON: " + e.getMessage());
-                                    }
-                                }
-                            } else {
-                                System.out.println(" Cảnh báo: Đơn hàng " + order.getId() + " không có item nào để trừ kho!");
-                            }
+                        if ("00".equals(responseCode)) {
+                            // Gọi shared method xử lý (idempotent - nếu RETURN đã xử lý thì skip)
+                            processVnpayPaymentSuccess(txnRef, transactionNo, "VNPAY_IPN");
                         } else {
                             order.setStatus("CANCELLED");
                             orderRepository.save(order);
                             cacheService.clearDashboardCache();
                         }
-                        // VNPAY yêu cầu trả JSON xác nhận thành công
                         return ResponseEntity.ok(Map.of("RspCode", "00", "Message", "Confirm Success"));
                     } else {
-                        // Đơn hàng đã được xử lý trước đó rồi
+                        // Đơn hàng đã được xử lý trước đó rồi (bởi RETURN hoặc IPN trước)
+                        System.out.println("ℹ️ [VNPAY IPN] Đơn " + formattedUuid + " đã được xử lý trước đó (status=" + order.getStatus() + "), skip.");
                         return ResponseEntity.ok(Map.of("RspCode", "02", "Message", "Order already confirmed"));
                     }
                 } else {
@@ -532,6 +494,86 @@ public class PaymentController {
             return ResponseEntity.status(HttpStatus.FOUND)
                     .location(URI.create(errorUrl))
                     .build();
+        }
+    }
+
+    // =========================================================
+    // SHARED METHOD: XỬ LÝ THANH TOÁN VNPAY THÀNH CÔNG
+    // Được gọi bởi cả /vnpay_return (chính) và /vnpay_ipn (backup)
+    // Idempotent: Kiểm tra status=PENDING trước khi xử lý, tránh trùng lặp
+    // =========================================================
+    private synchronized void processVnpayPaymentSuccess(String txnRef, String transactionNo, String source) {
+        try {
+            // 1. Parse UUID từ txnRef (đã bỏ dấu gạch ngang khi tạo URL)
+            String formattedUuid = String.format("%s-%s-%s-%s-%s",
+                    txnRef.substring(0, 8), txnRef.substring(8, 12),
+                    txnRef.substring(12, 16), txnRef.substring(16, 20),
+                    txnRef.substring(20, 32));
+
+            Order order = orderRepository.findById(UUID.fromString(formattedUuid)).orElse(null);
+
+            if (order == null) {
+                System.out.println("❌ [" + source + "] Không tìm thấy đơn hàng: " + formattedUuid);
+                return;
+            }
+
+            // 2. Guard: Chỉ xử lý đơn đang PENDING (idempotent)
+            if (!"PENDING".equals(order.getStatus())) {
+                System.out.println("ℹ️ [" + source + "] Đơn " + formattedUuid + " đã được xử lý (status=" + order.getStatus() + "), bỏ qua.");
+                return;
+            }
+
+            System.out.println("💳 [" + source + "] Đang xử lý thanh toán VNPAY cho đơn: " + formattedUuid);
+
+            // 3. CẬP NHẬT ORDER → PAID
+            order.setStatus("PAID");
+            orderRepository.save(order);
+            cacheService.clearDashboardCache();
+
+            // 4. GHI VẾT PAYMENT (method = VNPAY)
+            Payment payment = new Payment();
+            payment.setOrderId(order.getId());
+            payment.setTransactionId(transactionNo);
+            payment.setAmount(order.getTotalAmount());
+            payment.setPaymentMethod("VNPAY");
+            payment.setStatus("SUCCESS");
+            paymentRepository.save(payment);
+            System.out.println("✅ [" + source + "] Đã lưu Payment VNPAY cho đơn: " + formattedUuid);
+
+            // 5. GỬI THÔNG BÁO (Email + SSE qua RabbitMQ)
+            sendPaymentSuccessNotification(order);
+
+            // 6. BẮN RABBITMQ TRỪ TỒN KHO
+            if (order.getItems() != null && !order.getItems().isEmpty()) {
+                for (OrderItem item : order.getItems()) {
+                    Map<String, Object> data = new HashMap<>();
+                    data.put("orderId", order.getId().toString());
+                    data.put("productId", item.getProductId().toString());
+                    data.put("variantId", item.getVariantId() != null ? item.getVariantId().toString() : null);
+                    data.put("quantity", item.getQuantity());
+
+                    Map<String, Object> nestEnvelope = new HashMap<>();
+                    nestEnvelope.put("pattern", "inventory_update_queue");
+                    nestEnvelope.put("data", data);
+
+                    try {
+                        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                        String jsonMessage = mapper.writeValueAsString(nestEnvelope);
+                        System.out.println("📦 [" + source + "] Bắn tin trừ kho VNPAY: " + jsonMessage);
+                        rabbitTemplate.convertAndSend("inventory_update_queue", jsonMessage);
+                    } catch (Exception e) {
+                        System.out.println("❌ Lỗi đóng gói JSON trừ kho: " + e.getMessage());
+                    }
+                }
+            } else {
+                System.out.println("⚠️ Cảnh báo: Đơn hàng " + order.getId() + " không có item nào để trừ kho!");
+            }
+
+            System.out.println("🎉 [" + source + "] Hoàn tất xử lý VNPAY cho đơn: " + formattedUuid);
+
+        } catch (Exception e) {
+            System.err.println("❌ [" + source + "] Lỗi xử lý thanh toán VNPAY: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
