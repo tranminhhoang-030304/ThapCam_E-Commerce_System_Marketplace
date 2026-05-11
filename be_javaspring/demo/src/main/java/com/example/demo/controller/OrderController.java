@@ -11,8 +11,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -41,14 +46,27 @@ public class OrderController {
         return orderService.checkout(getCurrentUserId(), request);
     }
 
-    // 2. LẤY DANH SÁCH ĐƠN HÀNG CỦA TÔI
+    // 2. LẤY DANH SÁCH ĐƠN HÀNG CỦA TÔI (Hỗ trợ phân trang)
     @GetMapping
-    public ResponseEntity<?> getMyOrders() {
+    public ResponseEntity<?> getMyOrders(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int limit) {
+        
         String userIdStr = getCurrentUserId();
-        List<Order> orders = orderRepository.findByUserId(UUID.fromString(userIdStr));
+        UUID userId = UUID.fromString(userIdStr);
 
-        // Trả về dạng PaginatedResponse { items: [...] } để Frontend khỏi lỗi
-        return ResponseEntity.ok(Map.of("items", orders, "total", orders.size(), "page", 1, "limit", 100));
+        // Sử dụng Pageable để phân trang từ DB (Giảm tải cho Server và tránh lỗi Lazy)
+        Pageable pageable = PageRequest.of(page, limit, Sort.by("createdAt").descending());
+        Page<Order> orderPage = orderRepository.findByUserId(userId, pageable);
+
+        // Trả về kết quả bọc trong Map để đồng bộ với Frontend
+        return ResponseEntity.ok(Map.of(
+            "items", orderPage.getContent(),
+            "total", orderPage.getTotalElements(),
+            "page", page,
+            "limit", limit,
+            "totalPages", orderPage.getTotalPages()
+        ));
     }
 
     // 3. XEM CHI TIẾT 1 ĐƠN HÀNG CỦA TÔI

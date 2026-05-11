@@ -25,7 +25,20 @@ public class GlobalExceptionHandler {
     // Bắt toàn bộ các lỗi văng ra không lường trước (NullPointer, đứt kết nối DB...)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleException(Exception ex) {
-        logger.error("🔥 LỖI NGHIÊM TRỌNG KHÔNG XÁC ĐỊNH: {}", ex.getMessage(), ex);
-        return ResponseEntity.internalServerError().body(Map.of("error", "Đã xảy ra lỗi hệ thống, vui lòng thử lại sau!"));
+        // Ghi log chi tiết kèm StackTrace để debug trên Render/Console
+        logger.error("🔥 LỖI NGHIÊM TRỌNG HỆ THỐNG: ", ex);
+        
+        // Trả về thông báo lỗi chi tiết hơn một chút để sếp biết đường fix nếu là lỗi mapping JSON
+        String message = ex.getMessage();
+        if (message != null && message.contains("Jackson")) {
+            message = "Lỗi tuần tự hóa dữ liệu (JSON Mapping). Kiểm tra quan hệ Entity!";
+        } else {
+            message = "Đã xảy ra lỗi hệ thống, vui lòng thử lại sau!";
+        }
+
+        return ResponseEntity.internalServerError().body(Map.of(
+            "error", message,
+            "path", "GlobalExceptionHandler"
+        ));
     }
 }
