@@ -18,13 +18,13 @@ public class User {
     @Column(name = "email")
     private String email;
 
-    @Column(name = "_password_hash")
+    @Column(name = "password_hash")
     private String password;
 
-    @Column(name = "_role")
+    @Column(name = "role")
     private String role;
 
-    @Column(name = "_createdAt")
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     // --- Getters & Setters ---
