@@ -70,29 +70,6 @@ import { SseModule } from './sse/sse.module';
     CategoriesModule,
     EventEmitterModule.forRoot(),
     MailModule,
-    MailerModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        transport: {
-          host: configService.get<string>('MAIL_HOST', 'smtp.gmail.com'),
-          port: configService.get<number>('MAIL_PORT', 587),
-          secure: configService.get<number>('MAIL_PORT') === 465, // Tự động bật secure nếu dùng port 465
-          // Force IPv4: Render Free Tier không hỗ trợ IPv6 outbound
-          family: 4,
-          auth: {
-            user: configService.get<string>('MAIL_USER'),
-            pass: configService.get<string>('MAIL_PASS'),
-          },
-          tls: {
-            rejectUnauthorized: false, // Tránh lỗi chứng chỉ trên môi trường Cloud
-          },
-        },
-        defaults: {
-          from: configService.get<string>('MAIL_FROM', '"ThapCam E-Com" <hoangmih334@gmail.com>'),
-        },
-      }),
-    }),
     UploadModule,
     SseModule,
   ],
