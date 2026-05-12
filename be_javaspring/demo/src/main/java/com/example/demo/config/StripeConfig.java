@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import jakarta.annotation.PostConstruct;
 
 @Configuration
+@org.springframework.context.annotation.Lazy(false) // Bắt buộc load ngay khi app start (không bị ảnh hưởng bởi lazy-initialization)
 public class StripeConfig {
 
     @Value("${payment.stripe.secret-key}")
