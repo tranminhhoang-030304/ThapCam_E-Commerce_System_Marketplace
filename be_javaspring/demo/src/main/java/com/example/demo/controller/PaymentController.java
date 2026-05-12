@@ -190,13 +190,18 @@ public class PaymentController {
 
     @GetMapping("/momo_return")
     public ResponseEntity<?> momoReturn(HttpServletRequest request) {
-        // Nhận API từ Next.js. Thực tế cần dùng HMAC SHA256 để check chữ ký.
-        // Tạm thời trả về OK nếu resultCode = 0 (Thành công), vì việc trừ kho/cập nhật DB đã có IPN lo.
+        // MoMo redirect browser đến đây → Backend xử lý → 302 redirect về Frontend
+        // Pattern này KHÔNG CÓ CORS vì browser redirect, không phải AJAX
         String resultCode = request.getParameter("resultCode");
-        if ("0".equals(resultCode)) {
-            return ResponseEntity.ok(Map.of("success", true, "message", "MoMo verify success"));
-        }
-        return ResponseEntity.badRequest().body(Map.of("success", false, "message", "MoMo payment failed"));
+        String orderId = request.getParameter("orderId");
+
+        String momoStatus = "0".equals(resultCode) ? "success" : "failed";
+        String redirectUrl = frontendUrl + "/payment/result?momo_status=" + momoStatus
+                + (orderId != null ? "&orderId=" + orderId : "");
+
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(URI.create(redirectUrl))
+                .build();
     }
 
     @GetMapping("/vnpay_return")

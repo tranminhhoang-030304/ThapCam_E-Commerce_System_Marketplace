@@ -40,17 +40,18 @@ function PaymentResultContent() {
       setOrderId(formattedOrderId); // Lưu mã chuẩn vào state để tí truyền vào URL
 
       // Nhận diện cổng thanh toán từ URL params
-      const isMomo = searchParams.has('partnerCode');
+      // momo_status: Từ flow mới (Backend redirect 302 → Frontend)
+      // partnerCode: Từ flow cũ (MoMo redirect trực tiếp → Frontend)
+      const momoStatus = searchParams.get('momo_status');
+      const isMomo = momoStatus !== null || searchParams.has('partnerCode');
       const isStripe = stripeStatus !== null;
       const isVNPay = vnpResponse !== null;
 
-      const isSuccessLocal = (vnpResponse === '00') || (momoResponse === '0') || (stripeStatus === 'success');
+      const isSuccessLocal = (vnpResponse === '00') || (momoResponse === '0') || (momoStatus === 'success') || (stripeStatus === 'success');
 
-      // MoMo đặc biệt: Nếu có partnerCode nhưng không có resultCode, vẫn coi là MoMo
-      // (IPN đã xử lý DB, frontend chỉ cần hiển thị)
+      // MoMo: IPN đã xử lý DB server-to-server, frontend chỉ cần hiển thị kết quả
       if (isMomo) {
-        if (momoResponse === '0' || momoResponse === null) {
-          // resultCode=0 hoặc không có resultCode (ATM) → hiển thị thành công
+        if (momoStatus === 'success' || momoResponse === '0' || momoResponse === null) {
           setStatus('success');
           setMessage('Thanh toán thành công! Đơn hàng của bạn đang được xử lý.');
         } else {
