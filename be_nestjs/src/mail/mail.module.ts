@@ -29,7 +29,7 @@ import { UsersModule } from '../users/users.module';
                 const { from, to, subject, html } = mail.data;
                 
                 // Format To (Người nhận)
-                let toList = [];
+                let toList: any[] = [];
                 if (typeof to === 'string') {
                   toList.push({ email: to });
                 } else if (Array.isArray(to)) {
@@ -100,14 +100,15 @@ import { UsersModule } from '../users/users.module';
           defaults: {
             from: configService.get<string>('MAIL_FROM') || configService.get<string>('MAIL_USER'),
           },
-        template: {
-          dir: join(__dirname, 'templates'),
-          adapter: new EjsAdapter(),
-          options: {
-            strict: false,
+          template: {
+            dir: join(__dirname, 'templates'),
+            adapter: new EjsAdapter(),
+            options: {
+              strict: false,
+            },
           },
-        },
-      }),
+        };
+      },
     }),
   ],
   controllers: [MailController],

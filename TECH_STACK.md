@@ -18,6 +18,7 @@ Dự án **ThapCam E-Commerce** là một hệ thống Monorepo, được chia t
 * **Database Cloud:** [Supabase](https://supabase.com/) (Managed PostgreSQL)
 * **Message Broker Cloud:** [CloudAMQP](https://www.cloudamqp.com/) (Managed RabbitMQ)
 * **Redis Cloud:** [Upstash](https://upstash.com/) (Serverless Redis)
+* **Email Service:** [Brevo](https://www.brevo.com/) (Bypass Render SMTP Blocking) 
 
 ---
 
