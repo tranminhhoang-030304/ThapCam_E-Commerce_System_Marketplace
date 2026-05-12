@@ -5,6 +5,11 @@ import { WinstonModule, utilities as nestWinstonModuleUtilities } from 'nest-win
 import * as winston from 'winston';
 import 'winston-daily-rotate-file';
 import { Transport } from '@nestjs/microservices';
+import * as dns from 'dns';
+
+// Force IPv4: Render Free Tier không hỗ trợ IPv6 outbound
+// Nếu không có dòng này, smtp.gmail.com resolve thành IPv6 → ENETUNREACH
+dns.setDefaultResultOrder('ipv4first');
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
