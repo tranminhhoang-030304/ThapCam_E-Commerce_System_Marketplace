@@ -47,14 +47,26 @@ function PaymentResultContent() {
         return;
       }
 
-      // 3. Gọi Backend verify lại cho chắc cốp
-      try {
-        await PaymentService.verifyPaymentReturn(queryString);
+      // 3. Xử lý theo từng cổng thanh toán
+      // - MoMo & Stripe: IPN/Webhook đã xử lý DB server-to-server → chỉ cần check local là hiển thị SUCCESS
+      // - VNPay: Cần gọi backend verify vì /vnpay_return cũng xử lý DB đồng thời
+      const isMomo = momoResponse !== null;
+      const isStripe = stripeStatus !== null;
+
+      if (isMomo || isStripe) {
+        // MoMo/Stripe: Hiển thị thành công ngay (DB đã được IPN/Webhook cập nhật)
         setStatus('success');
         setMessage('Thanh toán thành công! Đơn hàng của bạn đang được xử lý.');
-      } catch (error) {
-        setStatus('error');
-        setMessage('Có lỗi xảy ra khi xác thực giao dịch với hệ thống.');
+      } else {
+        // VNPay: Gọi backend verify (đồng thời cập nhật DB)
+        try {
+          await PaymentService.verifyPaymentReturn(queryString);
+          setStatus('success');
+          setMessage('Thanh toán thành công! Đơn hàng của bạn đang được xử lý.');
+        } catch (error) {
+          setStatus('error');
+          setMessage('Có lỗi xảy ra khi xác thực giao dịch với hệ thống.');
+        }
       }
     };
 
