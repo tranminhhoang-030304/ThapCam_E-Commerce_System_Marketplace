@@ -16,9 +16,11 @@ WORKDIR /app
 # Copy the built jar from the build stage
 COPY --from=build /app/target/*.jar app.jar
 
-# Expose the port Spring Boot runs on
-EXPOSE 8080
+# Expose the port (Render sets PORT env automatically)
+EXPOSE ${PORT:-8080}
 
-# Run the application with optimized RAM for Render 512MB Tier
-ENV PORT=8080
-ENTRYPOINT ["java", "-Xmx200m", "-jar", "app.jar"]
+# Run with optimized JVM for Render 512MB Free Tier
+# -XX:+TieredCompilation -XX:TieredStopAtLevel=1 = Skip C2 compiler → startup 2-3x nhanh hơn
+# -Xmx300m = Tăng RAM heap (Render 512MB cho phép)
+# -Dspring.jmx.enabled=false = Tắt JMX monitoring không cần thiết
+ENTRYPOINT ["java", "-Xmx300m", "-XX:+TieredCompilation", "-XX:TieredStopAtLevel=1", "-Dspring.jmx.enabled=false", "-jar", "app.jar"]

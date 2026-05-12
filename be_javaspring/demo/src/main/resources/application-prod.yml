@@ -2,12 +2,20 @@ server:
   port: ${PORT:8080}
 
 spring:
+  # Tăng tốc khởi động trên Render Free Tier (tránh bị SIGTERM do timeout)
+  main:
+    lazy-initialization: true
+
   # Cấu hình PostgreSQL cho Render
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?currentSchema=java_db_order&sslmode=require}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 3
+      minimum-idle: 1
+      connection-timeout: 30000
   
   jpa:
     hibernate:
