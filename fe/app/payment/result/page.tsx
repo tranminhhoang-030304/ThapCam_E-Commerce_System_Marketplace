@@ -39,25 +39,38 @@ function PaymentResultContent() {
       }
       setOrderId(formattedOrderId); // Lưu mã chuẩn vào state để tí truyền vào URL
 
+      // Nhận diện cổng thanh toán từ URL params
+      const isMomo = searchParams.has('partnerCode');
+      const isStripe = stripeStatus !== null;
+      const isVNPay = vnpResponse !== null;
+
       const isSuccessLocal = (vnpResponse === '00') || (momoResponse === '0') || (stripeStatus === 'success');
 
-      if (!isSuccessLocal) {
-        setStatus('error');
-        setMessage('Giao dịch đã bị hủy hoặc thanh toán không thành công.');
-        return;
-      }
-
-      // 3. Xử lý theo từng cổng thanh toán
-      // - MoMo & Stripe: IPN/Webhook đã xử lý DB server-to-server → chỉ cần check local là hiển thị SUCCESS
-      // - VNPay: Cần gọi backend verify vì /vnpay_return cũng xử lý DB đồng thời
-      const isMomo = momoResponse !== null;
-      const isStripe = stripeStatus !== null;
-
-      if (isMomo || isStripe) {
-        // MoMo/Stripe: Hiển thị thành công ngay (DB đã được IPN/Webhook cập nhật)
-        setStatus('success');
-        setMessage('Thanh toán thành công! Đơn hàng của bạn đang được xử lý.');
-      } else {
+      // MoMo đặc biệt: Nếu có partnerCode nhưng không có resultCode, vẫn coi là MoMo
+      // (IPN đã xử lý DB, frontend chỉ cần hiển thị)
+      if (isMomo) {
+        if (momoResponse === '0' || momoResponse === null) {
+          // resultCode=0 hoặc không có resultCode (ATM) → hiển thị thành công
+          setStatus('success');
+          setMessage('Thanh toán thành công! Đơn hàng của bạn đang được xử lý.');
+        } else {
+          setStatus('error');
+          setMessage('Giao dịch MoMo đã bị hủy hoặc không thành công.');
+        }
+      } else if (isStripe) {
+        if (stripeStatus === 'success') {
+          setStatus('success');
+          setMessage('Thanh toán thành công! Đơn hàng của bạn đang được xử lý.');
+        } else {
+          setStatus('error');
+          setMessage('Giao dịch Stripe đã bị hủy hoặc không thành công.');
+        }
+      } else if (isVNPay) {
+        if (!isSuccessLocal) {
+          setStatus('error');
+          setMessage('Giao dịch đã bị hủy hoặc thanh toán không thành công.');
+          return;
+        }
         // VNPay: Gọi backend verify (đồng thời cập nhật DB)
         try {
           await PaymentService.verifyPaymentReturn(queryString);
@@ -67,6 +80,9 @@ function PaymentResultContent() {
           setStatus('error');
           setMessage('Có lỗi xảy ra khi xác thực giao dịch với hệ thống.');
         }
+      } else {
+        setStatus('error');
+        setMessage('Không nhận diện được cổng thanh toán.');
       }
     };
 
