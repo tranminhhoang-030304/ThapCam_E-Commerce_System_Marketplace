@@ -24,6 +24,13 @@ import { UsersModule } from '../users/users.module';
           transport = {
             name: 'BrevoHTTP',
             version: '1.0.0',
+            // Mock verify to satisfy NestJS MailerService initialization
+            verify: (callback: any) => {
+              if (typeof callback === 'function') {
+                callback(null, true);
+              }
+              return Promise.resolve(true);
+            },
             send: async (mail: any, callback: any) => {
               try {
                 const { from, to, subject, html } = mail.data;
