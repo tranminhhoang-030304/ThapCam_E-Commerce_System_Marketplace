@@ -5,11 +5,19 @@ Dự án **ThapCam E-Commerce** là một hệ thống Monorepo, được chia t
 ---
 
 ## 🐳 1. Hạ tầng Cơ sở (Infrastructure & DevOps)
-> **Quản lý triển khai:** Docker & Docker Compose (`docker-compose.yml`)
+> **Môi trường:** Local (Docker) & Cloud (Production)
 
+### Local Development (Docker)
 * **Database Core:** PostgreSQL (`v15-alpine`)
-* **In-memory Cache / Session:** Redis (`v7-alpine`)
-* **Message Broker:** RabbitMQ (`v3-management-alpine`) - Tích hợp sẵn UI quản lý.
+* **In-memory Cache:** Redis (`v7-alpine`)
+* **Message Broker:** RabbitMQ (`v3-management-alpine`)
+
+### Cloud Hosting (Production)
+* **Frontend Hosting:** [Vercel](https://vercel.com/)
+* **Backend Hosting:** [Render](https://render.com/)
+* **Database Cloud:** [Supabase](https://supabase.com/) (Managed PostgreSQL)
+* **Message Broker Cloud:** [CloudAMQP](https://www.cloudamqp.com/) (Managed RabbitMQ)
+* **Redis Cloud:** [Upstash](https://upstash.com/) (Serverless Redis)
 
 ---
 

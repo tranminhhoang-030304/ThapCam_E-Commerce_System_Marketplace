@@ -47,21 +47,21 @@ graph TD
     Client[🖥️ Next.js Frontend]
 
     subgraph "Khối Node.js (PIM / Auth / Mail)"
-        NestJS[🔴 NestJS API<br/>Port: 4000]
-        DB1[(PostgreSQL<br/>nestjs_db)]
+        NestJS[🔴 NestJS API<br/>(Render)]
+        DB1[(Supabase DB<br/>nestjs_db)]
         NestJS --- DB1
     end
 
     subgraph "Khối Java (OMS / Cart / Promotion)"
-        Spring[🟢 Spring Boot API<br/>Port: 8080]
-        DB2[(PostgreSQL<br/>java_db)]
-        Redis[(Redis Cache)]
+        Spring[🟢 Spring Boot API<br/>(Render)]
+        DB2[(Supabase DB<br/>java_db)]
+        Redis[(Upstash Redis)]
         Spring --- DB2
         Spring --- Redis
     end
 
-    subgraph "Hạ tầng Event-Driven (Docker)"
-        RabbitMQ((🐰 RabbitMQ))
+    subgraph "Hạ tầng Event-Driven"
+        RabbitMQ((🐰 CloudAMQP))
     end
 
     Client <-->|REST API / SSE| NestJS
@@ -104,7 +104,18 @@ sequenceDiagram
     MQ-->>Mail: Consume Event (Voucher Code)
     Mail->>User: Gửi Email chào mừng kèm mã giảm giá!
 
-⚙️ 4. Hướng dẫn cài đặt (Installation)
+## ☁️ 4. Triển khai Cloud (Deployment Providers)
+
+Dự án hỗ trợ chạy song song cả môi trường **Local (Docker)** và **Cloud (Production)**. Các dịch vụ Cloud đang sử dụng:
+- **Frontend:** [Vercel](https://vercel.com/)
+- **Backend Services:** [Render](https://render.com/)
+- **Databases:** [Supabase](https://supabase.com/) (PostgreSQL)
+- **Message Broker:** [CloudAMQP](https://www.cloudamqp.com/) (RabbitMQ)
+- **Caching:** [Upstash](https://upstash.com/) (Redis)
+
+---
+
+## ⚙️ 5. Hướng dẫn cài đặt (Installation)
 Yêu cầu hệ thống (Prerequisites)
 - Node.js (v18+) & npm/yarn
 - Java 17 & Maven

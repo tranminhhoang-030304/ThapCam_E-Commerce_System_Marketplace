@@ -32,7 +32,12 @@ public class SecurityConfig {
                           : frontendUrl;
 
         // Sử dụng Patterns để linh hoạt hơn (Chấp nhận cả localhost và domain Production)
-        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:3000", cleanUrl));
+        // Vercel tạo URL dạng: xxx.vercel.app, xxx-hash.vercel.app → dùng wildcard
+        configuration.setAllowedOriginPatterns(Arrays.asList(
+            "http://localhost:3000", 
+            cleanUrl,
+            "https://*.vercel.app"
+        ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*")); 
         configuration.setAllowCredentials(true);

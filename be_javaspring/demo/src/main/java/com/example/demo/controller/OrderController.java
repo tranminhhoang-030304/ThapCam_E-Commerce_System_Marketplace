@@ -22,7 +22,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/orders") // Điểm chung cho mọi thao tác về Order
-@CrossOrigin(origins = "${app.frontend-url:http://localhost:3000}")
 public class OrderController {
 
     @Autowired

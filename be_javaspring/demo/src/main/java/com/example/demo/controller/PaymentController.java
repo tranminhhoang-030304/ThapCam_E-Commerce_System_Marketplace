@@ -26,7 +26,6 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/payment")
-@CrossOrigin(origins = "${app.frontend-url:http://localhost:3000}")
 public class PaymentController {
 
     // === CẤU HÌNH VNPAY ===
