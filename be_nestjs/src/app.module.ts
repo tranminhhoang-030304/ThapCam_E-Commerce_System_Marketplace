@@ -78,6 +78,8 @@ import { SseModule } from './sse/sse.module';
           host: configService.get<string>('MAIL_HOST', 'smtp.gmail.com'),
           port: configService.get<number>('MAIL_PORT', 587),
           secure: configService.get<number>('MAIL_PORT') === 465, // Tự động bật secure nếu dùng port 465
+          // Force IPv4: Render Free Tier không hỗ trợ IPv6 outbound
+          family: 4,
           auth: {
             user: configService.get<string>('MAIL_USER'),
             pass: configService.get<string>('MAIL_PASS'),

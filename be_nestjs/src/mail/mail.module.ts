@@ -20,9 +20,15 @@ import { UsersModule } from '../users/users.module';
           host: configService.get<string>('MAIL_HOST'), 
           port: configService.get<number>('MAIL_PORT') || 587,
           secure: configService.get<string>('MAIL_SECURE') === 'true', // Chuyển từ string "false" sang boolean
+          // Force IPv4: Render Free Tier không hỗ trợ IPv6 outbound
+          // Nếu không có dòng này, nodemailer sẽ resolve smtp.gmail.com → IPv6 → ENETUNREACH
+          family: 4,
           auth: {
             user: configService.get<string>('MAIL_USER'),
             pass: configService.get<string>('MAIL_PASS'),
+          },
+          tls: {
+            rejectUnauthorized: false,
           },
         },
         defaults: {
