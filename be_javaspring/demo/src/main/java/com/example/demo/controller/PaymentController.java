@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
+import com.stripe.net.Webhook;
+import com.stripe.model.Event;
+import com.stripe.exception.SignatureVerificationException;
 import java.time.LocalDateTime;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -46,6 +49,7 @@ public class PaymentController {
     @Value("${payment.stripe.success-url}") private String stripeSuccessUrl;
     @Value("${payment.stripe.cancel-url}") private String stripeCancelUrl;
     @Value("${app.frontend-url}") private String frontendUrl;
+    @Value("${payment.stripe.webhook-secret}") private String stripeWebhookSecret;
 
     @Autowired private OrderRepository orderRepository;
     @Autowired private PaymentRepository paymentRepository;
@@ -463,6 +467,115 @@ public class PaymentController {
         }
     }
 
+    // =========================================================
+    // LUỒNG CHUẨN: WEBHOOK CỦA STRIPE (CHẠY NGẦM SERVER-TO-SERVER)
+    // =========================================================
+    @PostMapping("/stripe/webhook")
+    public ResponseEntity<String> stripeWebhook(
+            @RequestBody String payload,
+            @RequestHeader("Stripe-Signature") String sigHeader) {
+        
+        Event event;
+        try {
+            // Xác thực chữ ký xem có đúng là Stripe gọi không (Chống Hacker fake request)
+            event = Webhook.constructEvent(payload, sigHeader, stripeWebhookSecret);
+        } catch (SignatureVerificationException e) {
+            System.err.println("❌ Lỗi chữ ký Webhook Stripe: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid signature");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error processing payload");
+        }
+
+        // Lắng nghe đúng sự kiện: "Khách đã quẹt thẻ thành công"
+        if ("checkout.session.completed".equals(event.getType())) {
+            
+            try {
+                // TUYỆT CHIÊU VƯỢT RÀO VERSION STRIPE: 
+                // Bóc cái ID trực tiếp từ chuỗi JSON thô (payload) thay vì dùng thư viện ép kiểu
+                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                com.fasterxml.jackson.databind.JsonNode rootNode = mapper.readTree(payload);
+                String sessionId = rootNode.path("data").path("object").path("id").asText();
+                
+                // Dùng sessionId gọi API lấy lại Session chuẩn theo đúng version của SDK hiện tại
+                Session session = Session.retrieve(sessionId);
+                
+                if (session != null) {
+                    // 1. Móc cái Transaction ID (Payment Intent)
+                    String stripeTransactionId = session.getPaymentIntent();
+                    
+                    // 2. Móc cái Order ID mình đã giấu vào metadata lúc tạo link thanh toán
+                    String orderIdStr = session.getMetadata().get("order_id");
+                    
+                    if (orderIdStr != null) {
+                        UUID orderId = UUID.fromString(orderIdStr);
+                        Order order = orderRepository.findById(orderId).orElse(null);
+
+                        // 3. Xử lý cập nhật DB (Chỉ xử lý nếu đang PENDING)
+                        if (order != null && "PENDING".equals(order.getStatus())) {
+                            System.out.println("💳 [STRIPE WEBHOOK] Đang xử lý đơn: " + orderId);
+
+                            order.setStatus("PAID");
+                            orderRepository.save(order);
+                            cacheService.clearDashboardCache();
+
+                            Payment payment = new Payment();
+                            payment.setOrderId(orderId);
+                            payment.setPaymentMethod("STRIPE");
+                            payment.setTransactionId(stripeTransactionId); // Đã có Transaction ID xịn!
+                            payment.setAmount(order.getTotalAmount());
+                            payment.setCreatedAt(LocalDateTime.now());
+                            payment.setStatus("SUCCESS");
+                            paymentRepository.save(payment);
+
+                            sendPaymentSuccessNotification(order);
+                            
+                            // Bắn RabbitMQ trừ kho
+                            if (order.getItems() != null && !order.getItems().isEmpty()) {
+                                for (OrderItem item : order.getItems()) {
+                                    Map<String, Object> data = new HashMap<>();
+                                    data.put("orderId", order.getId().toString());
+                                    data.put("productId", item.getProductId().toString());
+                                    data.put("variantId", item.getVariantId() != null ? item.getVariantId().toString() : null);
+                                    data.put("quantity", item.getQuantity());
+
+                                    Map<String, Object> nestEnvelope = new HashMap<>();
+                                    nestEnvelope.put("pattern", "inventory_update_queue");
+                                    nestEnvelope.put("data", data);
+
+                                    try {
+                                        String jsonMessage = mapper.writeValueAsString(nestEnvelope);
+                                        rabbitTemplate.convertAndSend("inventory_update_queue", jsonMessage);
+                                        System.out.println("📦 [STRIPE WEBHOOK] Đã bắn lệnh trừ kho cho SP: " + item.getProductId());
+                                    } catch (Exception e) {
+                                        System.out.println("❌ Lỗi đóng gói JSON trừ kho Stripe: " + e.getMessage());
+                                    }
+                                }
+                            }
+                            System.out.println("✅ [STRIPE WEBHOOK] Đã chốt đơn thành công toàn tập!");
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("❌ Lỗi khi bóc tách payload Stripe Webhook: " + e.getMessage());
+            }
+        }
+
+        // Stripe yêu cầu trả về 200 OK để nó biết mình đã nhận được tin nhắn
+        return ResponseEntity.ok("Success");
+    }
+
+    @GetMapping("/stripe/success")
+    public ResponseEntity<?> stripeSuccess(@RequestParam("orderId") UUID orderId) {
+        // LUỒNG CHUẨN: Frontend chỉ nhận trạng thái success để báo cho người dùng vui mừng.
+        // Còn việc trừ kho, đổi status, cập nhật payment... thằng WEBHOOK đã chạy ngầm và lo liệu xong rồi!
+        
+        String frontendResultUrl = frontendUrl + "/payment/result?stripe_status=success&orderId=" + orderId;
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(URI.create(frontendResultUrl))
+                .build();
+    }
+
+    /*
     // API Hứng từ Stripe -> Cập nhật DB -> Đá về Frontend
     @GetMapping("/stripe/success")
     public ResponseEntity<?> stripeSuccess(@RequestParam("orderId") UUID orderId) {
@@ -500,6 +613,7 @@ public class PaymentController {
                     .build();
         }
     }
+    */
 
     // =========================================================
     // SHARED METHOD: XỬ LÝ THANH TOÁN VNPAY THÀNH CÔNG
