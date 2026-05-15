@@ -72,3 +72,4 @@ payment:
     secret-key: ${PAYMENT_STRIPE_SECRET_KEY}
     success-url: ${STRIPE_SUCCESS_URL}
     cancel-url: ${STRIPE_CANCEL_URL}
+    webhook-secret: ${STRIPE_WEBHOOK_SECRET}
