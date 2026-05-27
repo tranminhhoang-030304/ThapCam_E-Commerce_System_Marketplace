@@ -19,13 +19,19 @@ export class Review {
   @Column('int')
   rating: number; // Lưu số sao từ 1 đến 5
 
-  @Column('text')
+  @Column('text', { nullable: true })
   comment: string;
+
+  @Column('text', { array: true, nullable: true })
+  images: string[];
+
+  @Column('text', { array: true, nullable: true })
+  videos: string[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @ManyToOne(() => Product, product => product.reviews, { nullable: true })
+  @ManyToOne(() => Product, product => product.reviews, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'productId' })
   product: Product;
 

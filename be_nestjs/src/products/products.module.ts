@@ -8,13 +8,18 @@ import { AuthModule } from '../auth/auth.module';
 import { ProductVariant } from './entities/product-variant.entity';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { Review } from './entities/review.entity';
-
+import { HttpModule } from '@nestjs/axios';
+import { UploadModule } from 'src/upload/upload.module';
+import { ReviewsService } from './reviews.service'; 
+import { ReviewsController } from './reviews.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Product, Category, ProductVariant, Review]),
     AuthModule,
+    HttpModule,
+    UploadModule,
     ClientsModule.registerAsync([
       {
         name: 'RABBITMQ_CLIENT',
@@ -31,7 +36,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       },
     ]),
   ],
-  providers: [ProductsService],
-  controllers: [ProductsController]
+  providers: [ProductsService, ReviewsService],
+  controllers: [ProductsController, ReviewsController]
 })
 export class ProductsModule {}
